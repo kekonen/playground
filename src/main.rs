@@ -145,6 +145,19 @@ impl<A: Sameable + Fittable<B> + Eq + Ord + PartialEq + PartialOrd, B: Sameable 
         }
     }
 
+    fn find_similar_and_overlapping_reservations(&mut self) {
+        // for x in self.xs.iter() {
+        //     let mut links = vec![];
+        //     for y in self.ys.iter(){
+        //         if x.fits_in(y) {
+        //             links.push(y.clone())
+        //         }
+        //     }
+        //     self.robins.push(RoundRobin::new(links.len()));
+        //     self.y_links.push(links);
+        // }
+    }
+
 
     // Gets current y(room) at ith x(reservation) link. Used to find whether current y at current x 
     fn get_y_at_ith_x(&self, i: usize) {
@@ -162,8 +175,18 @@ fn main() {
     let mut solver = Solver2::new(reservations, units);
     solver.fill_links_and_robins();
 
-    let rr = RoundRobin::new(3);
-    // rr.next();
-    rr.skip(5);
-    println!("rr state: {:?}", rr.state())
+
+
+
+
+    if false {
+        let rr = RoundRobin::new(3);
+        // rr.next();
+        rr.skip(5);
+        println!("rr state: {:?}", rr.state())
+    }
+    
+    
+    
+    
 }
