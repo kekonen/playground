@@ -11,21 +11,33 @@ struct Unit {
     capacity: i32
 }
 
-trait Sameable {
-    fn same(&self, another: &Self) -> bool;
+trait Similarable {
+    fn similar(&self, another: &Self) -> bool;
 }
 
-impl Sameable for Reservation {
-    fn same(&self, another: &Self) -> bool {
+impl Similarable for Reservation {
+    fn similar(&self, another: &Self) -> bool {
         self.weight == another.weight
     }
 }
 
-impl Sameable for Unit {
-    fn same(&self, another: &Self) -> bool {
+impl Similarable for Unit {
+    fn similar(&self, another: &Self) -> bool {
         self.capacity == another.capacity
     }
 }
+
+
+trait Overlappable {
+    fn overlaps(&self, another: &Self) -> bool;
+}
+
+impl Overlappable for Reservation {
+    fn overlaps(&self, another: &Self) -> bool {
+        self.weight == another.weight
+    }
+}
+
 
 trait Fittable<T> {
     fn fits_in(&self, container: &T) -> bool;
@@ -110,26 +122,28 @@ impl RoundRobin {
 //xxxxxxx
 // y  yyy
 //    y
-struct Solver2<A: Sameable + Fittable<B> + Eq + Ord + PartialEq + PartialOrd, B: Sameable + Eq + Ord + PartialEq + PartialOrd> {
-    xs: Vec<A>,
-    ys: Vec<Rc<B>>,
+struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> {
+    xs: Vec<X>,
+    ys: Vec<Rc<Y>>,
     cursor: usize,
     max: usize,
-    y_links: Vec<Vec<Rc<B>>>,
-    robins: Vec<RoundRobin>, 
+    y_links: Vec<Vec<Rc<Y>>>,
+    robins: Vec<RoundRobin>,
+    similar: Vec<Vec<usize>>,
+    overlapping: Vec<Vec<usize>>,
 }
 
-impl<A: Sameable + Fittable<B> + Eq + Ord + PartialEq + PartialOrd, B: Sameable + Eq + Ord + PartialEq + PartialOrd> Solver2<A, B> {
-    fn new(mut xs: Vec<A>, mut ys: Vec<B>) -> Self {  
+impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> Solver2<X, Y> {
+    fn new(mut xs: Vec<X>, mut ys: Vec<Y>) -> Self {  
         let max = xs.len();
         xs.sort();
         ys.sort();
 
-        let ys = ys.into_iter().map(|y|Rc::new(y)).collect::<Vec<Rc<B>>>();
+        let ys = ys.into_iter().map(|y|Rc::new(y)).collect::<Vec<Rc<Y>>>();
 
         // let (y_links, robins) = Self::produce_links_and_robins(&xs, &ys);
 
-        Self {xs: xs, ys: ys, cursor: 0, max: max, y_links: vec![], robins: vec![]}
+        Self {xs: xs, ys: ys, cursor: 0, max: max, y_links: vec![], robins: vec![], similar: vec![], overlapping: vec![]}
     }
 
     fn fill_links_and_robins(&mut self) {
@@ -145,17 +159,22 @@ impl<A: Sameable + Fittable<B> + Eq + Ord + PartialEq + PartialOrd, B: Sameable 
         }
     }
 
-    fn find_similar_and_overlapping_reservations(&mut self) {
-        // for x in self.xs.iter() {
-        //     let mut links = vec![];
-        //     for y in self.ys.iter(){
-        //         if x.fits_in(y) {
-        //             links.push(y.clone())
-        //         }
-        //     }
-        //     self.robins.push(RoundRobin::new(links.len()));
-        //     self.y_links.push(links);
-        // }
+    fn fill_similar_and_overlapping_reservations(&mut self) {
+        for (i, x) in self.xs.iter().enumerate() {
+            let mut similar_to_this_x = vec![];
+            let mut overlapping_this_x = vec![];
+            for (ii, x_f) in self.xs.iter().enumerate().skip(i+1) {
+                if x_f.similar(x) {
+                    similar_to_this_x.push(ii)
+                }
+                if x_f.overlaps(x) {
+                    overlapping_this_x.push(ii)
+                }
+            }
+            self.similar.push(similar_to_this_x);
+            self.overlapping.push(overlapping_this_x);
+        }
+        
     }
 
 
@@ -174,6 +193,7 @@ fn main() {
     let reservations = vec![Reservation{weight: 2}, Reservation{weight: 3}, Reservation{weight: 3}, Reservation{weight: 4}];
     let mut solver = Solver2::new(reservations, units);
     solver.fill_links_and_robins();
+    solver.fill_similar_and_overlapping_reservations();
 
 
 
