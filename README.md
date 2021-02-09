@@ -65,7 +65,8 @@ N21 - skip 1
 Challenge: check if both rules work together
 
 ### Similar Units
-If units are absolutely the same (like both same floor), there is no difference in which put people
+If units are absolutely the same (like both same floor), there is no difference in which put people.
+It is possible to skip them till the next non-similar, if it is not occupied by higher reservations, else then just skip.
 
 
 
