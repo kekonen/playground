@@ -1,15 +1,17 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Clone)]
 struct Reservation {
+    name: String,
     min: i32,
     max: i32,
     weight: i32,
 }
 
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Debug, Eq, Ord, PartialEq, PartialOrd, Clone)]
 struct Unit {
+    name: String,
     capacity: i32
 }
 
@@ -129,7 +131,7 @@ impl RoundRobin {
 // y  yyy
 //    y
 #[derive(Debug)]
-struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> {
+struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone> {
     xs: Vec<X>,
     ys: Vec<Rc<Y>>,
     cursor: usize,
@@ -141,7 +143,7 @@ struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialE
     shortcuts: Vec<Vec<Option<Option<usize>>>>,
 }
 
-impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> Solver2<X, Y> {
+impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone> Solver2<X, Y> {
     fn new(mut xs: Vec<X>, mut ys: Vec<Y>) -> Self {  
         let max = xs.len();
         xs.sort();
@@ -213,21 +215,74 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         }
     }
 
-    fn produce_combinations(&mut self) {
-        
+    fn step(&mut self) -> bool {
+        while self.robins[self.cursor].next() {
+            // Rule 1
+            // Rule 2
+            // Rule 3
+            self.cursor += 1;
+            if self.cursor >= self.robins.len() {
+                return true
+            }
+        }
+        self.cursor = 0;
+        return false
+    }
+
+    fn current_combination(&self) -> Vec<Option<Y>> {
+        // xs: Vec<X>,
+        // ys: Vec<Rc<Y>>,
+        // y_links: Vec<Vec<Rc<Y>>>,
+        // robins: Vec<RoundRobin>,
+        let mut result = vec![];
+        for (i, robin) in self.robins.iter().enumerate() {
+            let state = robin.state();
+
+            let chosen_y = if let Some(ii) = state {
+                Some((*self.ys[ii]).clone())
+            } else {
+                None
+            };
+
+            result.push(chosen_y);
+        }
+        result
+    }
+
+    fn produce_combinations(&mut self) -> Vec<Vec<Option<Y>>> {
+        let mut combinations = vec![];
+        while !self.step() {
+            combinations.push(self.current_combination())
+        }
+        return combinations
     }
 }
 
 fn main() {
     println!("Hello, world!");
 
-    let units = vec![Unit{capacity: 2}, Unit{capacity: 3}, Unit{capacity: 3}, Unit{capacity: 3}, Unit{capacity: 4}];
+    // let units = vec![
+    //     Unit{name: String::from("AA"), capacity: 2},
+    //     Unit{name: String::from("BB"), capacity: 3},
+    //     Unit{name: String::from("CC"), capacity: 3},
+    //     Unit{name: String::from("DD"), capacity: 3},
+    //     Unit{name: String::from("EE"), capacity: 4}
+    // ];
+    // let reservations = vec![
+    //     Reservation{name: String::from("QQ"), weight: 2, min: 2, max: 5},
+    //     Reservation{name: String::from("WW"), weight: 3, min: 2, max: 5},
+    //     Reservation{name: String::from("XX"), weight: 3, min: 2, max: 5},
+    //     Reservation{name: String::from("YY"), weight: 3, min: 2, max: 5},
+    //     Reservation{name: String::from("ZZ"), weight: 4, min: 6, max: 8}];
+    let units = vec![
+        Unit{name: String::from("A"), capacity: 2},
+        Unit{name: String::from("B"), capacity: 2},
+        Unit{name: String::from("C"), capacity: 2},
+    ];
     let reservations = vec![
-        Reservation{weight: 2, min: 2, max: 5},
-        Reservation{weight: 3, min: 2, max: 5},
-        Reservation{weight: 3, min: 2, max: 5},
-        Reservation{weight: 3, min: 2, max: 5},
-        Reservation{weight: 4, min: 6, max: 8}];
+        Reservation{name: String::from("Y"), weight: 2, min: 2, max: 5},
+        Reservation{name: String::from("Z"), weight: 2, min: 3, max: 5}
+    ];
     let mut solver = Solver2::new(reservations, units);
     solver.init();
 
@@ -235,6 +290,12 @@ fn main() {
 
 
     println!("{:#?}", solver);
+
+    for combination in combinations.iter() {
+        println!("--> {:?}", combination.iter().map(|x| x.as_ref().map(|y| y.name.clone()).unwrap_or(String::from("-"))).collect::<Vec<String>>());
+    }
+
+    println!("len combinations: {}", combinations.len());
 
 
     if false {

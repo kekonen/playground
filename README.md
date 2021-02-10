@@ -1,30 +1,7 @@
 
+## Rules
 
-
-### Similar reservations cannot be equal or lower than the further ones
-Lets pretend that we have 2 reservations that are identical, in a sense that have same dates and other properties, hence same potential units - there is no need to test interchangingly - only unique combinations
-
- 2  2  2
- 1  1  1
- 0  0  0
-[N][N][N]
-NNN
-0NN
-1NN
-2NN
--X
-10N <-- important that 0th is already higher than the 1st, since N0N is same as 0NN in this case
-20N
--X
-21N
---X
-210
-
-Total: 8 combintions
-
-
-
-### Overlapping reservations
+### 1. Overlapping reservations
 Just dont use the rooms that are further
 
 A, B and C mutually intersect eachother, but they are not similar
@@ -64,7 +41,34 @@ N21 - skip 1
 
 Challenge: check if both rules work together
 
-### Similar Units
+
+
+### 2. Similar reservations cannot be equal or lower than the further ones
+Lets pretend that we have 2 reservations that are identical, in a sense that have same dates and other properties, hence same potential units - there is no need to test interchangingly - only unique combinations
+
+ 2  2  2
+ 1  1  1
+ 0  0  0
+[N][N][N]
+NNN
+0NN
+1NN
+2NN
+-X
+10N <-- important that 0th is already higher than the 1st, since N0N is same as 0NN in this case
+20N
+-X
+21N
+--X
+210
+
+Total: 8 combintions
+
+
+
+
+
+### 3. Similar Units
 If units are absolutely the same (like both same floor), there is no difference in which put people.
 It is possible to skip them till the next non-similar, if it is not occupied by higher reservations, else then just skip.
 
