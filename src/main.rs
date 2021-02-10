@@ -213,9 +213,23 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         }
     }
 
+    fn further_have_same(&self) -> bool {
+        let current_state_at_x = self.robins[self.cursor].state();
+        for i in self.cursor..self.max {
+
+            if current_state_at_x == self.robins[i].state() {
+                return true
+            }
+        }
+        false
+    }
+
     fn step(&mut self) -> bool {
         while self.robins[self.cursor].next() {
             // Rule 1
+            // TODO: finish this one down here for rule 1 - function should work
+            let further_have_same = self.further_have_same();
+
             // Rule 2
             // Rule 3
             self.cursor += 1;
