@@ -151,8 +151,6 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 
         let ys = ys.into_iter().map(|y|Rc::new(y)).collect::<Vec<Rc<Y>>>();
 
-        // let (y_links, robins) = Self::produce_links_and_robins(&xs, &ys);
-
         Self {xs: xs, ys: ys, cursor: 0, max: max, y_links: vec![], robins: vec![], similar: vec![], overlapping: vec![], shortcuts: vec![]}
     }
 
@@ -230,10 +228,6 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
     }
 
     fn current_combination(&self) -> Vec<Option<Y>> {
-        // xs: Vec<X>,
-        // ys: Vec<Rc<Y>>,
-        // y_links: Vec<Vec<Rc<Y>>>,
-        // robins: Vec<RoundRobin>,
         let mut result = vec![];
         for robin in self.robins.iter() {
             let state = robin.state();
@@ -296,16 +290,4 @@ fn main() {
     }
 
     println!("len combinations: {}", combinations.len());
-
-
-    if false {
-        let rr = RoundRobin::new(3);
-        // rr.next();
-        rr.skip(5);
-        println!("rr state: {:?}", rr.state())
-    }
-    
-    
-    
-    
 }
