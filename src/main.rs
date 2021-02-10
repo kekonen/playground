@@ -235,7 +235,7 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         // y_links: Vec<Vec<Rc<Y>>>,
         // robins: Vec<RoundRobin>,
         let mut result = vec![];
-        for (i, robin) in self.robins.iter().enumerate() {
+        for robin in self.robins.iter() {
             let state = robin.state();
 
             let chosen_y = if let Some(ii) = state {
