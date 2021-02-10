@@ -3,7 +3,9 @@ use std::rc::Rc;
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct Reservation {
-    weight: i32
+    min: i32,
+    max: i32,
+    weight: i32,
 }
 
 #[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -17,7 +19,7 @@ trait Similarable {
 
 impl Similarable for Reservation {
     fn similar(&self, another: &Self) -> bool {
-        self.weight == another.weight
+        self.min == another.min && self.max == another.max && self.weight == another.weight
     }
 }
 
@@ -34,7 +36,10 @@ trait Overlappable {
 
 impl Overlappable for Reservation {
     fn overlaps(&self, another: &Self) -> bool {
-        self.weight == another.weight
+        self.min <= another.min && self.max >= another.min ||
+        self.max >= another.max && self.min <= another.max ||
+        self.min >= another.min && self.max <= another.max ||
+        self.min <= another.min && self.max >= another.max
     }
 }
 
@@ -49,6 +54,7 @@ impl Fittable<Unit> for Reservation {
     }
 }
 
+#[derive(Debug)]
 struct RoundRobin {
     max: usize,
     cursor: RefCell<Option<usize>>
@@ -122,6 +128,7 @@ impl RoundRobin {
 //xxxxxxx
 // y  yyy
 //    y
+#[derive(Debug)]
 struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> {
     xs: Vec<X>,
     ys: Vec<Rc<Y>>,
@@ -131,6 +138,7 @@ struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialE
     robins: Vec<RoundRobin>,
     similar: Vec<Vec<usize>>,
     overlapping: Vec<Vec<usize>>,
+    shortcuts: Vec<Vec<Option<Option<usize>>>>,
 }
 
 impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd, Y: Similarable + Eq + Ord + PartialEq + PartialOrd> Solver2<X, Y> {
@@ -143,7 +151,13 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 
         // let (y_links, robins) = Self::produce_links_and_robins(&xs, &ys);
 
-        Self {xs: xs, ys: ys, cursor: 0, max: max, y_links: vec![], robins: vec![], similar: vec![], overlapping: vec![]}
+        Self {xs: xs, ys: ys, cursor: 0, max: max, y_links: vec![], robins: vec![], similar: vec![], overlapping: vec![], shortcuts: vec![]}
+    }
+
+    fn init(&mut self) {
+        self.fill_links_and_robins();
+        self.fill_similar_and_overlapping_reservations();
+        self.fill_similar_ys_shortcuts();
     }
 
     fn fill_links_and_robins(&mut self) {
@@ -179,24 +193,48 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 
 
     // Gets current y(room) at ith x(reservation) link. Used to find whether current y at current x 
-    fn get_y_at_ith_x(&self, i: usize) {
-
+    fn fill_similar_ys_shortcuts(&mut self) {
+        for x in self.y_links.iter() {
+            let mut xith_shortcuts: Vec<Option<Option<usize>>> = x.iter().map(|_|None).collect(); // Fisrt option if the next ones are the same, second is actually address, where None is empty element, meaning that the ith y has rest of the rooms the same
+            if x.len() > 0 {
+                let mut last_not_same_i: Option<usize> = None;
+                for (yi, y_link) in x.iter().enumerate().rev().skip(1) {
+                    // check if yi'th is same as yi+1'th
+                    // if so: keep last_not_same_i (as None in the first round) and put this last_not_same_i into yith sortcut
+                    // else: put last_not_same_i = Some()
+                    if y_link.similar(&x[yi+1])  {
+                        xith_shortcuts[yi] = Some(last_not_same_i)
+                    } else {
+                        last_not_same_i = Some(yi+1);
+                    }
+                }
+            }
+            self.shortcuts.push(xith_shortcuts)
+        }
     }
 
-
+    fn produce_combinations(&mut self) {
+        
+    }
 }
 
 fn main() {
     println!("Hello, world!");
 
-    let units = vec![Unit{capacity: 2}, Unit{capacity: 3}, Unit{capacity: 3}, Unit{capacity: 4}];
-    let reservations = vec![Reservation{weight: 2}, Reservation{weight: 3}, Reservation{weight: 3}, Reservation{weight: 4}];
+    let units = vec![Unit{capacity: 2}, Unit{capacity: 3}, Unit{capacity: 3}, Unit{capacity: 3}, Unit{capacity: 4}];
+    let reservations = vec![
+        Reservation{weight: 2, min: 2, max: 5},
+        Reservation{weight: 3, min: 2, max: 5},
+        Reservation{weight: 3, min: 2, max: 5},
+        Reservation{weight: 3, min: 2, max: 5},
+        Reservation{weight: 4, min: 6, max: 8}];
     let mut solver = Solver2::new(reservations, units);
-    solver.fill_links_and_robins();
-    solver.fill_similar_and_overlapping_reservations();
+    solver.init();
+
+    let combinations = solver.produce_combinations();
 
 
-
+    println!("{:#?}", solver);
 
 
     if false {
