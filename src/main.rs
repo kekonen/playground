@@ -132,7 +132,7 @@ impl RoundRobin {
 // y  yyy
 //    y
 #[derive(Debug)]
-struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> {
+struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> {
     xs: Vec<X>,
     ys: Vec<Rc<Y>>,
     cursor: usize,
@@ -144,7 +144,7 @@ struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialE
     shortcuts: Vec<Vec<Option<Option<usize>>>>,
 }
 
-impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> Solver2<X, Y> {
+impl<X: Similarable + Fittable<Y> + Overlappable + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> Solver2<X, Y> {
     fn new(mut xs: Vec<X>, mut ys: Vec<Y>) -> Self {  
         let max = xs.len();
         xs.sort();
