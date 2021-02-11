@@ -31,7 +31,6 @@ impl Similarable for Unit {
     }
 }
 
-
 trait Overlappable {
     fn overlaps(&self, another: &Self) -> bool;
 }
@@ -197,7 +196,6 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         
     }
 
-
     // Gets current y(room) at ith x(reservation) link. Used to find whether current y at current x 
     fn fill_similar_ys_shortcuts(&mut self) {
         for x in self.y_links.iter() {
@@ -235,10 +233,10 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         false
     }
 
-
     /// Returns true if all further robins have 
     fn any_further_similar_xs_state_is_higher_than_current(&self) -> bool {
         let current_state_at_x = self.robins[self.cursor].state();
+
         if let Some(current_state_at_x) = current_state_at_x {
             for further_similar_i in self.similar[self.cursor].iter() {
                 if let Some(further_overlapping_state) = self.robins[*further_similar_i].state() {
@@ -281,25 +279,18 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 
             // Rule 1
             if self.further_overlapping_have_same() {
-                // let current_combination = self.current_combination();
-                // println!("c: {:?}", current_combination.iter().map(|x| x.as_ref().map(|y| format!("{:?}", y)).unwrap_or(String::from("-"))).collect::<Vec<String>>());
                 continue
             }
-
 
             // Rule 2
             if self.any_further_similar_xs_state_is_higher_than_current() {
                 continue
             }
 
-             
-
             self.cursor = 0;
 
             return false
         }
-
-        
     }
 
     fn current_combination(&self) -> Vec<Option<Y>> {
@@ -328,8 +319,6 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 }
 
 fn main() {
-    println!("Hello, world!");
-
     // let units = vec![
     //     Unit{name: String::from("AA"), capacity: 2},
     //     Unit{name: String::from("BB"), capacity: 3},
