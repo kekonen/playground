@@ -2,9 +2,9 @@
 ## Rules
 
 ### 1. Overlapping reservations
-Just dont use the rooms that are further
+Just dont use the rooms that are used in further overlapping reservations
 
-A, B and C mutually intersect eachother, but they are not similar
+A, B and C mutually intersect eachother, and it doesnt matter if they are similar or not:
 
        4
     2  3

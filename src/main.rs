@@ -157,7 +157,7 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
 
     fn init(&mut self) {
         self.fill_links_and_robins();
-        self.fill_similar_and_overlapping_reservations();
+        self.fill_similar_and_overlapping_xs();
         self.fill_similar_ys_shortcuts();
     }
 
@@ -174,12 +174,16 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         }
     }
 
-    fn fill_similar_and_overlapping_reservations(&mut self) {
+    fn both_robins_have_same_ys(&self, i: usize, ii: usize) -> bool {
+        return self.y_links[i] == self.y_links[ii]
+    }
+
+    fn fill_similar_and_overlapping_xs(&mut self) {
         for (i, x) in self.xs.iter().enumerate() {
             let mut similar_to_this_x = vec![];
             let mut overlapping_this_x = vec![];
             for (ii, x_f) in self.xs.iter().enumerate().skip(i+1) {
-                if x_f.similar(x) {
+                if x_f.similar(x) || x_f.overlaps(x) && self.both_robins_have_same_ys(i, ii) { // Questionable construction (everything after ||)! This construction makes reservations similar if they are overlapping and have same reservation - meaning they are so identical, that can have Rule 2 have applied 
                     similar_to_this_x.push(ii)
                 }
                 if x_f.overlaps(x) {
@@ -214,14 +218,40 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         }
     }
 
-    /// Return true if one of the further robins have same 
-    fn further_have_same(&self) -> bool {
+    /// Return true if one of the further overlapping robins have same room
+    fn further_overlapping_have_same(&self) -> bool {
         let current_state_at_x = self.robins[self.cursor].state();
-        for i in self.cursor+1..self.max {
-            if current_state_at_x == self.robins[i].state() {
-                return true
+
+        if let Some(current_state_at_x) = current_state_at_x {
+            for overlapping_i in self.overlapping[self.cursor].iter() {
+                if let Some(further_overlapping_state) = self.robins[*overlapping_i].state() {
+                    if current_state_at_x == further_overlapping_state {
+                        return true
+                    }
+                }
             }
         }
+        false
+    }
+
+
+    /// Returns true if all further robins have 
+    fn any_further_similar_xs_state_is_higher_than_current(&self) -> bool {
+        let current_state_at_x = self.robins[self.cursor].state();
+        if let Some(current_state_at_x) = current_state_at_x {
+            for further_similar_i in self.similar[self.cursor].iter() {
+                if let Some(further_overlapping_state) = self.robins[*further_similar_i].state() {
+                    if further_overlapping_state >= current_state_at_x {
+                        return true
+                    }
+                }
+            }
+        }
+        // else { // drop this else if want earlier similar reservations to be None. But usually u dont want it
+        //     for further_similar_i in self.similar[self.cursor].iter() {
+        //         if self.robins[*further_similar_i].state().is_some() {}
+        //     }
+        // }
         false
     }
 
@@ -240,15 +270,21 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
             }
 
             // Rule 1
-            // TODO: finish this one down here for rule 1 - function should work
-            
-            if self.further_have_same() {
+            if self.further_overlapping_have_same() {
                 // let current_combination = self.current_combination();
                 // println!("c: {:?}", current_combination.iter().map(|x| x.as_ref().map(|y| format!("{:?}", y)).unwrap_or(String::from("-"))).collect::<Vec<String>>());
                 continue
             }
+
+
             // Rule 2
+            if self.any_further_similar_xs_state_is_higher_than_current() {
+                continue
+            }
+
             // Rule 3
+            // if i want to make a jump to next one, and the next one is same - then i rather use a shortcut 
+
 
 
             self.cursor = 0;
@@ -308,7 +344,7 @@ fn main() {
         Unit{name: String::from("C"), capacity: 2},
     ];
     let reservations = vec![
-        Reservation{name: String::from("Y"), weight: 2, min: 2, max: 5},
+        Reservation{name: String::from("Y"), weight: 2, min: 2, max: 4},
         Reservation{name: String::from("Z"), weight: 2, min: 3, max: 5}
     ];
     let mut solver = Solver2::new(reservations, units);
