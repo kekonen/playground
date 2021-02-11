@@ -67,6 +67,7 @@ impl RoundRobin {
         Self { max: max, cursor: RefCell::new(None)}
     }
 
+    /// Turns a robin and returns true if made a full round
     fn next(&self) -> bool {
         let mut turned = false;
         let new_cursor = if let Some(mut cursor) = *self.cursor.borrow() {
@@ -131,7 +132,7 @@ impl RoundRobin {
 // y  yyy
 //    y
 #[derive(Debug)]
-struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone> {
+struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> {
     xs: Vec<X>,
     ys: Vec<Rc<Y>>,
     cursor: usize,
@@ -143,7 +144,7 @@ struct Solver2<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialE
     shortcuts: Vec<Vec<Option<Option<usize>>>>,
 }
 
-impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone> Solver2<X, Y> {
+impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug, Y: Similarable + Eq + Ord + PartialEq + PartialOrd + Clone + std::fmt::Debug> Solver2<X, Y> {
     fn new(mut xs: Vec<X>, mut ys: Vec<Y>) -> Self {  
         let max = xs.len();
         xs.sort();
@@ -213,10 +214,10 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         }
     }
 
+    /// Return true if one of the further robins have same 
     fn further_have_same(&self) -> bool {
         let current_state_at_x = self.robins[self.cursor].state();
-        for i in self.cursor..self.max {
-
+        for i in self.cursor+1..self.max {
             if current_state_at_x == self.robins[i].state() {
                 return true
             }
@@ -224,21 +225,40 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         false
     }
 
+    /// Returns finish of the algo. Ie when all robins made a turn at least once
     fn step(&mut self) -> bool {
-        while self.robins[self.cursor].next() {
+        loop {
+            // While we turn a robin under cursor and get a full round turn, basically while it tunes we go next
+            while self.robins[self.cursor].next() {
+
+                
+                
+                self.cursor += 1;
+                if self.cursor >= self.robins.len() {
+                    return true
+                }
+            }
+
             // Rule 1
             // TODO: finish this one down here for rule 1 - function should work
-            let further_have_same = self.further_have_same();
-
+            
+            if self.further_have_same() {
+                // let current_combination = self.current_combination();
+                // println!("c: {:?}", current_combination.iter().map(|x| x.as_ref().map(|y| format!("{:?}", y)).unwrap_or(String::from("-"))).collect::<Vec<String>>());
+                continue
+            }
             // Rule 2
             // Rule 3
-            self.cursor += 1;
-            if self.cursor >= self.robins.len() {
-                return true
-            }
+
+
+            self.cursor = 0;
+
+            
+            
+            return false
         }
-        self.cursor = 0;
-        return false
+
+        
     }
 
     fn current_combination(&self) -> Vec<Option<Y>> {
