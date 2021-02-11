@@ -95,6 +95,7 @@ impl RoundRobin {
                 Some(to)
             }
         } else {
+            turned = true;
             None
         };
 
@@ -255,14 +256,23 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
         false
     }
 
+    fn next(&mut self) -> bool {
+        if let Some(robin_s_state) = self.robins[self.cursor].state() {
+            if let Some(possible_shortcut) = self.shortcuts[self.cursor][robin_s_state] {
+                return self.robins[self.cursor].jump(possible_shortcut)
+            } else {
+                return self.robins[self.cursor].next()
+            }
+        } else {
+            return self.robins[self.cursor].next()
+        }
+    }
+
     /// Returns finish of the algo. Ie when all robins made a turn at least once
     fn step(&mut self) -> bool {
         loop {
-            // While we turn a robin under cursor and get a full round turn, basically while it tunes we go next
-            while self.robins[self.cursor].next() {
-
-                
-                
+            // While we turn a robin under cursor and get a full round turn, basically while it tunes we go next. Search Rule 3 here
+            while self.next() {
                 self.cursor += 1;
                 if self.cursor >= self.robins.len() {
                     return true
@@ -282,15 +292,10 @@ impl<X: Similarable + Fittable<Y> + Overlappable + Eq + Ord + PartialEq + Partia
                 continue
             }
 
-            // Rule 3
-            // if i want to make a jump to next one, and the next one is same - then i rather use a shortcut 
-
-
+             
 
             self.cursor = 0;
 
-            
-            
             return false
         }
 
